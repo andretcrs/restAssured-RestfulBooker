@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ main, master ]
 
-# PERMISSÕES: Necessário para publicar no GitHub Pages e evitar erros de 'refspec'
 permissions:
   contents: write
   pages: write
@@ -29,7 +28,7 @@ jobs:
 
       - name: Rodar testes com Maven
         run: mvn clean test
-        continue-on-error: true # Permite gerar o report mesmo se um teste falhar
+        continue-on-error: true
 
       - name: Carregar histórico do Allure
         uses: actions/checkout@v4
@@ -37,13 +36,13 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-        continue-on-error: true # Evita falha na primeira execução se a branch estiver vazia
+        continue-on-error: true
 
       - name: Gerar Relatório Allure
         uses: simple-elf/allure-report-action@master
         if: always()
         with:
-          allure_results: allure-results
+          allure_results: target/allure-results
           gh_pages: gh-pages
           allure_report: allure-report
           allure_history: allure-history

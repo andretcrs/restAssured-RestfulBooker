@@ -1,0 +1,1 @@
+{"5584019acd9bef662c6a37830bda0660":{"statistic":{"failed":0,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":1},"items":[{"uid":"259bdd022124c10c","reportUrl":"https://andretcrs.github.io/restAssured-RestfulBooker/2/#testresult/259bdd022124c10c","status":"passed","time":{"start":1770643713489,"stop":1770643713507,"duration":18}}]}}

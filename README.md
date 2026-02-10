@@ -96,10 +96,3 @@ Incluir um bloco de código bash com os comandos:
 
 ==================================================
 
-## 👨‍💻 Sobre o Projeto
-
-Informar que o projeto foi desenvolvido para fins de estudo e consolidação de práticas profissionais em Automação de Testes de API com Java.
-
-==================================================
-
-# restAssured-RestfulBooker

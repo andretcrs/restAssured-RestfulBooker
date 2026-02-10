@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main, master ]
 
+# Adicionado para permitir que a Action publique no GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,7 +29,7 @@ jobs:
 
       - name: Rodar testes com Maven
         run: mvn clean test
-        continue-on-error: true # Garante que a pipeline não pare se um teste falhar, para gerar o report
+        continue-on-error: true
 
       - name: Carregar histórico do Allure
         uses: actions/checkout@v4
@@ -31,6 +37,7 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
+        continue-on-error: true # Ignora erro se a branch ainda não existir na 1ª execução
 
       - name: Gerar Relatório Allure
         uses: simple-elf/allure-report-action@master

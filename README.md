@@ -1,6 +1,6 @@
 ==================================================
 
-# 🏨 Desafio Rest Assured – Automação de Testes de API
+# Desafio Rest Assured – Automação de Testes de API
 
 Descrição do Projeto:
 Este projeto tem como objetivo demonstrar a automação de testes de API REST utilizando boas práticas de QA e arquitetura de testes, aplicado à API Restful-Booker.  
@@ -8,7 +8,7 @@ O foco está em confiabilidade, manutenibilidade, uso de massa de dados dinâmic
 
 ==================================================
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - Java 21 (LTS)
 - Maven (Gerenciamento de dependências)
@@ -22,7 +22,7 @@ O foco está em confiabilidade, manutenibilidade, uso de massa de dados dinâmic
 
 <hr/>
 
-<h2>📁 Estrutura do Projeto</h2>
+<h2> Estrutura do Projeto</h2>
 <pre>
 <code>
 DesafioRestAssured
@@ -54,7 +54,7 @@ DesafioRestAssured
 
 ==================================================
 
-## 🧪 Cenários de Teste Automatizados
+## Cenários de Teste Automatizados
 
 Exiba os cenários abaixo em uma tabela Markdown com as colunas:
 Categoria | Classe de Teste | Objetivo do Cenário
@@ -68,7 +68,7 @@ Categoria | Classe de Teste | Objetivo do Cenário
 
 ==================================================
 
-## ▶️ Executando os Testes
+##  Executando os Testes
 
 ### Execução Local
 
@@ -78,7 +78,7 @@ Incluir um bloco de código bash com os comandos:
 
 ==================================================
 
-## ⚙️ Pipeline CI/CD (GitHub Actions)
+## Pipeline CI/CD (GitHub Actions)
 
 - O ambiente é preparado com JDK 21
 - O Maven executa a suíte completa de testes de API
@@ -87,7 +87,7 @@ Incluir um bloco de código bash com os comandos:
 
 ==================================================
 
-## ✅ Boas Práticas Aplicadas
+## Boas Práticas Aplicadas
 
 - Data Factory Pattern: Massa de dados 100% dinâmica com Datafaker
 - Client Pattern: Abstração da lógica HTTP em classes especializadas

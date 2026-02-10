@@ -15,7 +15,7 @@ public class BookingClient {
     @Step("Buscar todos os bookings")
     public Response getAllBookings() {
         return given()
-                .header("Accept", "application/json") // Adicionado para garantir o formato da resposta
+                .header("Accept", "application/json")
                 .when()
                 .get(BOOKING_ENDPOINT)
                 .then()
@@ -64,8 +64,8 @@ public class BookingClient {
     @Step("Criar uma nova reserva")
     public Response createBooking(BookingRequest bookingRequest) {
         return given()
-                .header("Content-Type", "application/json") // Forçando via String para evitar o 418
-                .header("Accept", "application/json")       // Forçando via String para evitar o 418
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
                 .body(bookingRequest)
                 .when()
                 .post(BOOKING_ENDPOINT)
@@ -78,7 +78,7 @@ public class BookingClient {
         return given()
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .header("Cookie", "token=" + token) // Formato exigido pela API
+                .header("Cookie", "token=" + token)
                 .pathParam("id", id)
                 .body(bookingRequest)
                 .when()
@@ -96,7 +96,7 @@ public class BookingClient {
                 .pathParam("id", id)
                 .body(bookingPart)
                 .when()
-                .patch(BOOKING_ENDPOINT + "/{id}") // Método PATCH
+                .patch(BOOKING_ENDPOINT + "/{id}")
                 .then()
                 .extract()
                 .response();

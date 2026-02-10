@@ -12,7 +12,6 @@ import org.junit.jupiter.api.TestClassOrder;
 
 import static io.restassured.RestAssured.given;
 
-// Essa anotação permite que você use @Order nas classes de teste para definir a sequência
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 public abstract class BaseTest {
 

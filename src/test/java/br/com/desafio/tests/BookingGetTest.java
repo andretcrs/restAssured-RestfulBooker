@@ -97,7 +97,6 @@ public class BookingGetTest extends BaseTest {
     @Severity(SeverityLevel.NORMAL)
     @Description("Deve retornar erro 404 ao buscar um ID aleatório que não existe")
     void deveRetornarErroAoBuscarIdInexistente() {
-        // Gerando um ID improvável de existir
         int idInexistente = 999999 + (int)(Math.random() * 100000);
 
         bookingClient.getBookingById(idInexistente)

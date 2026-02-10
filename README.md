@@ -20,10 +20,11 @@ O foco está em confiabilidade, manutenibilidade, uso de massa de dados dinâmic
 
 ==================================================
 
-## 📂 Estrutura do Projeto
+<hr/>
 
-Apresente a estrutura abaixo em um bloco de código do tipo plaintext, seguindo rigorosamente o padrão Maven:
-
+<h2>📁 Estrutura do Projeto</h2>
+<pre>
+<code>
 DesafioRestAssured
 ├── .github/workflows
 │   └── pipeline.yml          # Configuração da Pipeline CI/CD (GitHub Actions)
@@ -45,6 +46,11 @@ DesafioRestAssured
 │           └── allure.properties
 ├── pom.xml                   # Configuração de dependências e plugins Maven
 └── README.md
+</code>
+</pre>
+
+<hr/>
+
 
 ==================================================
 

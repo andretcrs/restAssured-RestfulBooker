@@ -6,10 +6,11 @@ import br.com.desafio.factory.BookingDataFactory;
 import br.com.desafio.model.request.BookingRequest;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 @Epic("Booking")
 @Feature("Create Booking")
@@ -19,42 +20,45 @@ public class BookingPostTest extends BaseTest {
     private final BookingClient bookingClient = new BookingClient();
 
     @Test
-    @Story("Criar reserva com sucesso usando dados aleatórios")
+    @Story("Criar reserva com sucesso e validar contrato")
     @Severity(SeverityLevel.BLOCKER)
-    @Description("Deve criar uma nova reserva usando Faker e validar se os dados retornados são os mesmos enviados")
+    @Description("Valida contrato e dados da reserva sem interromper no primeiro erro")
     void deveCriarReservaComSucesso() {
         BookingRequest requestBody = BookingDataFactory.criarReservaValida();
-
         Response response = bookingClient.createBooking(requestBody);
 
-        assertThat(response.statusCode()).isEqualTo(200);
+        response.then()
+                .statusCode(200)
+                .body(matchesJsonSchemaInClasspath("schemas/booking-schema.json"));
 
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat((Object) response.path("bookingid"))
+                    .as("ID da reserva")
+                    .isNotNull();
 
-        Integer bookingId = response.path("bookingid");
-        String firstname = response.path("booking.firstname");
-        String lastname = response.path("booking.lastname");
-        Integer totalprice = response.path("booking.totalprice");
-        Boolean depositpaid = response.path("booking.depositpaid");
+            softly.assertThat(response.path("booking.firstname").toString())
+                    .as("Nome")
+                    .isEqualTo(requestBody.getFirstname());
 
-        assertThat(bookingId).as("O ID da reserva não deve ser nulo").isNotNull();
+            softly.assertThat(response.path("booking.lastname").toString())
+                    .as("Sobrenome")
+                    .isEqualTo(requestBody.getLastname());
 
-        assertThat(firstname)
-                .as("O nome deve coincidir com o gerado pelo Faker")
-                .isEqualTo(requestBody.getFirstname());
+            softly.assertThat((Integer) response.path("booking.totalprice"))
+                    .as("Preço")
+                    .isEqualTo(requestBody.getTotalprice());
 
-        assertThat(lastname)
-                .as("O sobrenome deve coincidir com o gerado pelo Faker")
-                .isEqualTo(requestBody.getLastname());
+            softly.assertThat((Boolean) response.path("booking.depositpaid"))
+                    .as("Status Depósito")
+                    .isEqualTo(requestBody.getDepositpaid());
 
-        assertThat(totalprice)
-                .as("O preço deve coincidir com o gerado pelo Faker")
-                .isEqualTo(requestBody.getTotalprice());
+            softly.assertThat(response.path("booking.bookingdates.checkin").toString())
+                    .as("Data Check-in")
+                    .isEqualTo(requestBody.getBookingdates().getCheckin());
 
-        assertThat(depositpaid)
-                .as("O status do depósito deve coincidir com o gerado pelo Faker")
-                .isEqualTo(requestBody.getDepositpaid());
-
-        String checkin = response.path("booking.bookingdates.checkin");
-        assertThat(checkin).isEqualTo(requestBody.getBookingdates().getCheckin());
+            softly.assertThat(response.path("booking.bookingdates.checkout").toString())
+                    .as("Data Check-out")
+                    .isEqualTo(requestBody.getBookingdates().getCheckout());
+        });
     }
 }

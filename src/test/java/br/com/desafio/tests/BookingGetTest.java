@@ -5,14 +5,15 @@ import br.com.desafio.client.BookingClient;
 import br.com.desafio.factory.BookingDataFactory;
 import br.com.desafio.model.request.BookingRequest;
 import br.com.desafio.model.response.BookingIdResponse;
-import br.com.desafio.model.response.BookingResponse;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Epic("Booking")
@@ -22,19 +23,18 @@ public class BookingGetTest extends BaseTest {
 
     private final BookingClient bookingClient = new BookingClient();
 
-    // Nota: Como os testes de GET (consulta) geralmente não exigem Token na Restful Booker,
-    // não precisamos usar a variável 'token' herdada aqui, mas o BaseTest garante que
-    // a API está online antes de começar.
-
     @Test
     @Story("Buscar todos os bookings")
     @Severity(SeverityLevel.CRITICAL)
-    @Description("Deve retornar a lista de todos os booking IDs cadastrados")
+    @Description("Deve retornar a lista de todos os booking IDs e validar o contrato")
     void deveBuscarTodosOsBookings() {
         Response response = bookingClient.getAllBookings();
 
-        List<BookingIdResponse> bookings = response.then()
+        response.then()
                 .statusCode(200)
+                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"));
+
+        List<BookingIdResponse> bookings = response.then()
                 .extract()
                 .jsonPath()
                 .getList("", BookingIdResponse.class);
@@ -50,7 +50,6 @@ public class BookingGetTest extends BaseTest {
     @Severity(SeverityLevel.BLOCKER)
     @Description("Deve criar uma reserva com Faker e buscá-la pelo ID para validar os detalhes")
     void deveBuscarReservaPorId() {
-        // Criação de massa de dados dinâmica
         BookingRequest request = BookingDataFactory.criarReservaValida();
         int idCriado = bookingClient.createBooking(request)
                 .then()
@@ -60,36 +59,53 @@ public class BookingGetTest extends BaseTest {
 
         Response response = bookingClient.getBookingById(idCriado);
 
-        BookingResponse booking = response.then()
+        response.then()
                 .statusCode(200)
-                .extract()
-                .as(BookingResponse.class);
+                .body(matchesJsonSchemaInClasspath("schemas/booking-id-schema.json"));
 
-        // Validação profunda com AssertJ
-        assertThat(booking.getFirstname()).isEqualTo(request.getFirstname());
-        assertThat(booking.getLastname()).isEqualTo(request.getLastname());
-        assertThat(booking.getTotalprice()).isEqualTo(request.getTotalprice());
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(response.path("firstname").toString())
+                    .as("Nome")
+                    .isEqualTo(request.getFirstname());
+
+            softly.assertThat(response.path("lastname").toString())
+                    .as("Sobrenome")
+                    .isEqualTo(request.getLastname());
+
+            softly.assertThat((Integer) response.path("totalprice"))
+                    .as("Preço")
+                    .isEqualTo(request.getTotalprice());
+
+            softly.assertThat((Boolean) response.path("depositpaid"))
+                    .as("Status Depósito")
+                    .isEqualTo(request.getDepositpaid());
+
+            softly.assertThat(response.path("bookingdates.checkin").toString())
+                    .as("Check-in")
+                    .isEqualTo(request.getBookingdates().getCheckin());
+        });
     }
 
     @Test
     @Story("Buscar bookings por nome")
     @Severity(SeverityLevel.NORMAL)
-    @Description("Deve criar uma reserva com Faker e filtrar a busca por esse nome e sobrenome")
+    @Description("Deve filtrar a busca por nome e validar o contrato da lista retornada")
     void deveBuscarBookingsPorNome() {
         BookingRequest request = BookingDataFactory.criarReservaValida();
         bookingClient.createBooking(request).then().statusCode(200);
 
         Response response = bookingClient.getBookingsByName(request.getFirstname(), request.getLastname());
 
-        List<BookingIdResponse> bookings = response.then()
+        response.then()
                 .statusCode(200)
+                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"));
+
+        List<BookingIdResponse> bookings = response.then()
                 .extract()
                 .jsonPath()
                 .getList("", BookingIdResponse.class);
 
-        assertThat(bookings)
-                .as("A busca por filtros de nome deve retornar ao menos a reserva que acabamos de criar")
-                .isNotEmpty();
+        assertThat(bookings).isNotEmpty();
     }
 
     @Test

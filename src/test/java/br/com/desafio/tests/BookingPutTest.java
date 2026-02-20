@@ -6,9 +6,11 @@ import br.com.desafio.factory.BookingDataFactory;
 import br.com.desafio.model.request.BookingRequest;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Epic("Booking")
@@ -21,7 +23,7 @@ public class BookingPutTest extends BaseTest {
     @Test
     @Story("Atualizar reserva existente")
     @Severity(SeverityLevel.BLOCKER)
-    @Description("Deve atualizar todos os campos de uma reserva usando Faker e validar o retorno")
+    @Description("Deve atualizar todos os campos de uma reserva e validar o contrato")
     void deveAtualizarReservaComSucesso() {
         BookingRequest createRequest = BookingDataFactory.criarReservaValida();
         Integer bookingId = bookingClient.createBooking(createRequest)
@@ -32,39 +34,53 @@ public class BookingPutTest extends BaseTest {
 
         BookingRequest updateRequest = BookingDataFactory.criarReservaValida();
 
-        Response response = bookingClient.updateBooking(bookingId, updateRequest, token);
+        Response response = bookingClient.updateBooking(bookingId, updateRequest, getToken());
 
-        assertThat(response.statusCode()).isEqualTo(200);
+        response.then()
+                .statusCode(200)
+                .body(matchesJsonSchemaInClasspath("schemas/booking-put-schema.json"));
 
-        String firstname = response.path("firstname");
-        String lastname = response.path("lastname");
-        Integer totalPrice = response.path("totalprice");
-        Boolean depositPaid = response.path("depositpaid");
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(response.path("firstname").toString())
+                    .as("Nome")
+                    .isEqualTo(updateRequest.getFirstname());
 
-        assertThat(firstname).as("O nome deve ser o novo nome gerado")
-                .isEqualTo(updateRequest.getFirstname());
+            softly.assertThat(response.path("lastname").toString())
+                    .as("Sobrenome")
+                    .isEqualTo(updateRequest.getLastname());
 
-        assertThat(lastname).as("O sobrenome deve ser o novo sobrenome gerado")
-                .isEqualTo(updateRequest.getLastname());
+            softly.assertThat((Integer) response.path("totalprice"))
+                    .as("Preço")
+                    .isEqualTo(updateRequest.getTotalprice());
 
-        assertThat(totalPrice).as("O preço deve ser o novo valor gerado")
-                .isEqualTo(updateRequest.getTotalprice());
+            softly.assertThat((Boolean) response.path("depositpaid"))
+                    .as("Status Depósito")
+                    .isEqualTo(updateRequest.getDepositpaid());
 
-        assertThat(depositPaid).as("O status do depósito deve ser o novo valor")
-                .isEqualTo(updateRequest.getDepositpaid());
+            softly.assertThat(response.path("bookingdates.checkin").toString())
+                    .as("Check-in")
+                    .isEqualTo(updateRequest.getBookingdates().getCheckin());
+
+            softly.assertThat(response.path("bookingdates.checkout").toString())
+                    .as("Check-out")
+                    .isEqualTo(updateRequest.getBookingdates().getCheckout());
+        });
     }
 
     @Test
     @Story("Atualizar reserva sem token")
     @Severity(SeverityLevel.NORMAL)
-    @Description("Deve retornar 403 (Forbidden) ao tentar atualizar usando dados Faker mas com token inválido")
+    @Description("Deve retornar 403 (Forbidden) ao tentar atualizar com token inválido")
     void deveRetornarErroAoAtualizarSemToken() {
-        BookingRequest request = BookingDataFactory.criarReservaValida();
+        BookingRequest novaReserva = BookingDataFactory.criarReservaValida();
+        int bookingId = bookingClient.createBooking(novaReserva)
+                .then().extract().path("bookingid");
 
-        Response response = bookingClient.updateBooking(1, request, "token_invalido");
+        BookingRequest requestAtualizacao = BookingDataFactory.criarReservaValida();
+        Response response = bookingClient.updateBooking(bookingId, requestAtualizacao, "token_invalido");
 
         assertThat(response.statusCode())
-                .as("A API deve proibir a atualização (403 Forbidden) com credenciais inválidas")
+                .as("A API deve proibir a atualização (403 Forbidden)")
                 .isEqualTo(403);
     }
 }

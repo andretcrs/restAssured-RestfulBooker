@@ -3,7 +3,8 @@ package br.com.desafio.factory;
 import br.com.desafio.model.request.BookingRequest;
 import br.com.desafio.model.response.BookingDatesResponse;
 import net.datafaker.Faker;
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.Date;
 public class BookingDataFactory {
 
     private static final Faker faker = new Faker(new Locale("pt-BR"));
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public static BookingRequest criarReservaValida() {
         return new BookingRequest(
@@ -28,13 +29,20 @@ public class BookingDataFactory {
         BookingDatesResponse dates = new BookingDatesResponse();
 
         Date checkinDate = faker.date().future(10, 1, TimeUnit.DAYS);
-
         Date checkoutDate = faker.date().future(5, TimeUnit.DAYS, checkinDate);
 
-        dates.setCheckin(sdf.format(checkinDate));
-        dates.setCheckout(sdf.format(checkoutDate));
+        dates.setCheckin(formatarData(checkinDate));
+        dates.setCheckout(formatarData(checkoutDate));
 
         return dates;
+    }
+
+
+    private static String formatarData(Date data) {
+        return data.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(formatter);
     }
 
     public static String novoNome() { return faker.name().firstName(); }

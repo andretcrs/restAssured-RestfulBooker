@@ -26,6 +26,7 @@ public class HealthCheckTest extends BaseTest {
                 .when()
                 .get("/ping")
                 .then()
+                .log().all()
                 .extract()
                 .response();
 

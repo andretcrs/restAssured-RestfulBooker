@@ -1,0 +1,41 @@
+<div>PUT to https://restful-booker.herokuapp.com/booking/1905</div>
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;firstname&quot;: &quot;Washington&quot;,
+    &quot;lastname&quot;: &quot;Camacho&quot;,
+    &quot;totalprice&quot;: 1626,
+    &quot;depositpaid&quot;: false,
+    &quot;bookingdates&quot;: {
+        &quot;checkin&quot;: &quot;2026-02-28&quot;,
+        &quot;checkout&quot;: &quot;2026-03-04&quot;
+    },
+    &quot;additionalneeds&quot;: &quot;WiFi&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Cookie: token=810c23a1604a63d</div>
+        <div>Accept: application/json</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
+
+<h4>Curl</h4>
+<div>
+curl -v -X PUT &#39;https://restful-booker.herokuapp.com/booking/1905&#39; -H &#39;Cookie: token=810c23a1604a63d&#39; -H &#39;Accept: application/json&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;firstname&quot;: &quot;Washington&quot;,
+    &quot;lastname&quot;: &quot;Camacho&quot;,
+    &quot;totalprice&quot;: 1626,
+    &quot;depositpaid&quot;: false,
+    &quot;bookingdates&quot;: {
+        &quot;checkin&quot;: &quot;2026-02-28&quot;,
+        &quot;checkout&quot;: &quot;2026-03-04&quot;
+    },
+    &quot;additionalneeds&quot;: &quot;WiFi&quot;
+}&#39;
+</div>

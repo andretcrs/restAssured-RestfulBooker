@@ -14,6 +14,7 @@ import java.time.Instant;
 
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 public abstract class BaseTest {
+    private static final String HEALTH_CHECK_ENDPOINT = "/ping";
 
     protected static String token;
     private static Instant tokenExpiration;
@@ -58,7 +59,7 @@ public abstract class BaseTest {
         RestAssured.given()
                 .baseUri(RestAssured.baseURI)
                 .when()
-                .get("/ping")
+                .get(HEALTH_CHECK_ENDPOINT)
                 .then()
                 .statusCode(201);
     }

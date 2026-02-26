@@ -7,14 +7,13 @@ import br.com.desafio.model.request.BookingRequest;
 import br.com.desafio.model.response.BookingIdResponse;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @Epic("Booking")
 @Feature("Get Bookings")
@@ -28,21 +27,11 @@ public class BookingGetTest extends BaseTest {
     @Severity(SeverityLevel.CRITICAL)
     @Description("Deve retornar a lista de todos os booking IDs e validar o contrato")
     void deveBuscarTodosOsBookings() {
-        Response response = bookingClient.getAllBookings();
-
-        response.then()
+        bookingClient.getAllBookings()
+                .then()
                 .statusCode(200)
-                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"));
-
-        List<BookingIdResponse> bookings = response.then()
-                .extract()
-                .jsonPath()
-                .getList("", BookingIdResponse.class);
-
-        assertThat(bookings)
-                .as("A lista de bookings não deve ser nula")
-                .isNotNull()
-                .isNotEmpty();
+                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"))
+                .body("$", hasSize(greaterThan(0)));
     }
 
     @Test
@@ -51,39 +40,22 @@ public class BookingGetTest extends BaseTest {
     @Description("Deve criar uma reserva com Faker e buscá-la pelo ID para validar os detalhes")
     void deveBuscarReservaPorId() {
         BookingRequest request = BookingDataFactory.criarReservaValida();
+
         int idCriado = bookingClient.createBooking(request)
                 .then()
                 .statusCode(200)
                 .extract()
                 .path("bookingid");
 
-        Response response = bookingClient.getBookingById(idCriado);
-
-        response.then()
+        bookingClient.getBookingById(idCriado)
+                .then()
                 .statusCode(200)
-                .body(matchesJsonSchemaInClasspath("schemas/booking-id-schema.json"));
-
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(response.path("firstname").toString())
-                    .as("Nome")
-                    .isEqualTo(request.getFirstname());
-
-            softly.assertThat(response.path("lastname").toString())
-                    .as("Sobrenome")
-                    .isEqualTo(request.getLastname());
-
-            softly.assertThat((Integer) response.path("totalprice"))
-                    .as("Preço")
-                    .isEqualTo(request.getTotalprice());
-
-            softly.assertThat((Boolean) response.path("depositpaid"))
-                    .as("Status Depósito")
-                    .isEqualTo(request.getDepositpaid());
-
-            softly.assertThat(response.path("bookingdates.checkin").toString())
-                    .as("Check-in")
-                    .isEqualTo(request.getBookingdates().getCheckin());
-        });
+                .body(matchesJsonSchemaInClasspath("schemas/booking-id-schema.json"))
+                .body("firstname", equalTo(request.getFirstname()))
+                .body("lastname", equalTo(request.getLastname()))
+                .body("totalprice", equalTo(request.getTotalprice()))
+                .body("depositpaid", equalTo(request.getDepositpaid()))
+                .body("bookingdates.checkin", equalTo(request.getBookingdates().getCheckin()));
     }
 
     @Test
@@ -94,18 +66,11 @@ public class BookingGetTest extends BaseTest {
         BookingRequest request = BookingDataFactory.criarReservaValida();
         bookingClient.createBooking(request).then().statusCode(200);
 
-        Response response = bookingClient.getBookingsByName(request.getFirstname(), request.getLastname());
-
-        response.then()
+        bookingClient.getBookingsByName(request.getFirstname(), request.getLastname())
+                .then()
                 .statusCode(200)
-                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"));
-
-        List<BookingIdResponse> bookings = response.then()
-                .extract()
-                .jsonPath()
-                .getList("", BookingIdResponse.class);
-
-        assertThat(bookings).isNotEmpty();
+                .body(matchesJsonSchemaInClasspath("schemas/booking-list-schema.json"))
+                .body("$", not(empty()));
     }
 
     @Test

@@ -5,13 +5,11 @@ import br.com.desafio.client.BookingClient;
 import br.com.desafio.factory.BookingDataFactory;
 import br.com.desafio.model.request.BookingRequest;
 import io.qameta.allure.*;
-import io.restassured.response.Response;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 @Epic("Booking")
 @Feature("Update Booking")
@@ -34,37 +32,16 @@ public class BookingPutTest extends BaseTest {
 
         BookingRequest updateRequest = BookingDataFactory.criarReservaValida();
 
-        Response response = bookingClient.updateBooking(bookingId, updateRequest, getToken());
-
-        response.then()
+        bookingClient.updateBooking(bookingId, updateRequest, getToken())
+                .then()
                 .statusCode(200)
-                .body(matchesJsonSchemaInClasspath("schemas/booking-put-schema.json"));
-
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(response.path("firstname").toString())
-                    .as("Nome")
-                    .isEqualTo(updateRequest.getFirstname());
-
-            softly.assertThat(response.path("lastname").toString())
-                    .as("Sobrenome")
-                    .isEqualTo(updateRequest.getLastname());
-
-            softly.assertThat((Integer) response.path("totalprice"))
-                    .as("Preço")
-                    .isEqualTo(updateRequest.getTotalprice());
-
-            softly.assertThat((Boolean) response.path("depositpaid"))
-                    .as("Status Depósito")
-                    .isEqualTo(updateRequest.getDepositpaid());
-
-            softly.assertThat(response.path("bookingdates.checkin").toString())
-                    .as("Check-in")
-                    .isEqualTo(updateRequest.getBookingdates().getCheckin());
-
-            softly.assertThat(response.path("bookingdates.checkout").toString())
-                    .as("Check-out")
-                    .isEqualTo(updateRequest.getBookingdates().getCheckout());
-        });
+                .body(matchesJsonSchemaInClasspath("schemas/booking-put-schema.json"))
+                .body("firstname", equalTo(updateRequest.getFirstname()))
+                .body("lastname", equalTo(updateRequest.getLastname()))
+                .body("totalprice", equalTo(updateRequest.getTotalprice()))
+                .body("depositpaid", equalTo(updateRequest.getDepositpaid()))
+                .body("bookingdates.checkin", equalTo(updateRequest.getBookingdates().getCheckin()))
+                .body("bookingdates.checkout", equalTo(updateRequest.getBookingdates().getCheckout()));
     }
 
     @Test
@@ -74,13 +51,14 @@ public class BookingPutTest extends BaseTest {
     void deveRetornarErroAoAtualizarSemToken() {
         BookingRequest novaReserva = BookingDataFactory.criarReservaValida();
         int bookingId = bookingClient.createBooking(novaReserva)
-                .then().extract().path("bookingid");
+                .then()
+                .extract()
+                .path("bookingid");
 
         BookingRequest requestAtualizacao = BookingDataFactory.criarReservaValida();
-        Response response = bookingClient.updateBooking(bookingId, requestAtualizacao, "token_invalido");
 
-        assertThat(response.statusCode())
-                .as("A API deve proibir a atualização (403 Forbidden)")
-                .isEqualTo(403);
+        bookingClient.updateBooking(bookingId, requestAtualizacao, "token_invalido")
+                .then()
+                .statusCode(403);
     }
 }

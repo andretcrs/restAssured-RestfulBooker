@@ -5,6 +5,8 @@ import br.com.desafio.client.BookingClient;
 import br.com.desafio.factory.BookingDataFactory;
 import br.com.desafio.model.request.BookingRequest;
 import io.qameta.allure.*;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.specification.ResponseSpecification;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -61,4 +63,41 @@ public class BookingPutTest extends BaseTest {
                 .then()
                 .statusCode(403);
     }
+
+    @Test
+    @Story("Validar Idempotência na Atualização (PUT)")
+    @Description("Deve garantir que múltiplas chamadas PUT com o mesmo payload resultem no mesmo estado")
+    void deveGarantirIdempotenciaAoAtualizarReserva() {
+        BookingRequest createRequest = BookingDataFactory.criarReservaValida();
+        Integer bookingId = bookingClient.createBooking(createRequest)
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("bookingid");
+
+        BookingRequest updateRequest = BookingDataFactory.criarReservaValida();
+        ResponseSpecification validacaoReserva = new ResponseSpecBuilder()
+                .expectBody("firstname", equalTo(updateRequest.getFirstname()))
+                .expectBody("lastname", equalTo(updateRequest.getLastname()))
+                .expectBody("totalprice", equalTo(updateRequest.getTotalprice()))
+                .expectBody("depositpaid", equalTo(updateRequest.getDepositpaid()))
+                .build();
+
+        bookingClient.updateBooking(bookingId, updateRequest, getToken())
+                .then()
+                .statusCode(200)
+                .spec(validacaoReserva);
+
+        bookingClient.updateBooking(bookingId, updateRequest, getToken())
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .spec(validacaoReserva);
+
+        bookingClient.getBookingById(bookingId)
+                .then()
+                .body("firstname", equalTo(updateRequest.getFirstname()));
+
+    }
+
 }

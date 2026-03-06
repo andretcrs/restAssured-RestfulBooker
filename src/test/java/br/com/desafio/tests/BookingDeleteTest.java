@@ -38,6 +38,48 @@ public class BookingDeleteTest extends BaseTest {
                 .then()
                 .statusCode(404);
     }
+    @Test
+    @Story("Excluir uma reserva inexistente")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Deve tentar excluir um ID que não existe e validar a resposta de erro")
+    void deveRetornarErroAoExcluirReservaInexistente() {
+        int idInvalido = 999999999;
+
+        bookingClient.deleteBooking(idInvalido, getToken())
+                .then()
+                .statusCode(405);
+
+        bookingClient.getBookingById(idInvalido)
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    @Story("Validar Idempotência na Exclusão de Reserva")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Deve garantir que múltiplas requisições de exclusão para o mesmo ID não gerem erros internos")
+    void deveValidarIdempotenciaAoExcluirReserva() {
+        BookingRequest request = BookingDataFactory.criarReservaValida();
+        Integer bookingId = bookingClient.createBooking(request)
+
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("bookingid");
+
+        bookingClient.deleteBooking(bookingId, getToken())
+                .then()
+                .log().ifValidationFails()
+                .statusCode(201);
+
+        bookingClient.deleteBooking(bookingId, getToken())
+                .then()
+                .statusCode(405);
+
+        bookingClient.getBookingById(bookingId)
+                .then()
+                .statusCode(404);
+    }
 
     @Test
     @Story("Tentar excluir reserva sem token")
